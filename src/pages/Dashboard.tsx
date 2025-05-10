@@ -1,19 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { Users, ShoppingBag, ClipboardList, TrendingUp } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { fetchItems } from '../store/slice/itemSlice';
+import { fetchCustomers } from '../store/slice/CustomerSlice';
+import { fetchOrders } from '../store/slice/orderSlice';
+
 
 const Dashboard: React.FC = () => {
+  const dispatch = useDispatch();
+  const { customers } = useSelector((state: RootState) => state.customer);
+  const { items } = useSelector((state: RootState) => state.items);
+  const { orders } = useSelector((state: RootState) => state.orders);
   const [categoryItems, setCategoryItems] = useState<Record<string, number>>({});
 
+  useEffect(() => {
+    dispatch(fetchItems() as any);
+    dispatch(fetchCustomers() as any);
+    dispatch(fetchOrders() as any);
+    
+  }, [dispatch]);
 
-
+  useEffect(() => {
+    const categoryCounts: Record<string, number> = {};
+    items.forEach((item) => {
+      categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+    })
+    setCategoryItems(categoryCounts);
+  }, [items]);
 
   const stats = [
-    { name: 'Total Customers', value: 500, icon: <Users className="h-6 w-6 text-blue-500" /> },
-    { name: 'Total Items', value: 500, icon: <ShoppingBag className="h-6 w-6 text-green-500" /> },
-    { name: 'Total Orders', value: 500, icon: <ClipboardList className="h-6 w-6 text-purple-500" /> },
+    { name: 'Total Customers', value: customers.length, icon: <Users className="h-6 w-6 text-blue-500" /> },
+    { name: 'Total Items', value: items.length, icon: <ShoppingBag className="h-6 w-6 text-green-500" /> },
+    { name: 'Total Orders', value: orders.length, icon: <ClipboardList className="h-6 w-6 text-purple-500" /> },
     {
       name: 'Revenue',
-      value: 500,
+      value: `LKR ${orders.reduce((sum , order) => sum + order.total, 0)}`,
       icon: <TrendingUp className="h-6 w-6 text-yellow-500" />,
     },
   ];

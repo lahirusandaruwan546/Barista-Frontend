@@ -61,11 +61,11 @@ export const fetchOrderById = createAsyncThunk(
 export const creatOrder = createAsyncThunk(
     'order/createOrder',
     async (
-        {customerId, orderItems}: { customerId: string, orderItems: Omit<OrderItem, 'id' | 'orderId'>[] },
+        {customerId, orderItems, total}: { customerId: string, orderItems: Omit<OrderItem, 'id' | 'orderId'>[]; total: number },
         {rejectWithValue}
     ) => {
         try{
-            const response = await axios.post(BASE_URL, {customerId, orderItems});
+            const response = await axios.post(BASE_URL, {customerId, orderItems, total});
             return response.data;
         }catch(error: any) {
             return rejectWithValue(error.response?.data?.message || 'failed to create order');

@@ -1,12 +1,29 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Sofa } from 'lucide-react';
+import {Link, useNavigate} from 'react-router-dom';
+import {Cake, Sofa} from 'lucide-react';
+import {useDispatch} from "react-redux";
+import {login} from "../../store/slice/authSlice.ts";
 
+// testuser3@gmail.com , 12345689
+// namal@gmail.com , 7890
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const response = await dispatch(login({ email, password }) as any);
+    if (response.meta.requestStatus === 'fulfilled') {
+      // window.location.href = '/';
+      const user = response.payload.sendingUser.email;
+      localStorage.setItem('user', user);
+      navigate('/')
+    } else {
+      alert('Failed to login');
+    }
 
   };
 
@@ -15,10 +32,10 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
-            <Sofa className="h-12 w-12 text-indigo-600" />
+            <Cake className="h-12 w-12 text-indigo-600" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Company Name
+            Barista Shop
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to your admin account

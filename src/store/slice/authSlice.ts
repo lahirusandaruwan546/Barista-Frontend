@@ -1,49 +1,51 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import axios from "axios";
 
-interface AuthSlice{
+
+interface AuthState {
     user: any;
     isAuthenticated: boolean;
 }
 
-const initialState: AuthSlice = {
+const initialState: AuthState = {
     user: null,
-    isAuthenticated: false,
+    isAuthenticated: localStorage.getItem('user') ? true : false,
 };
 
-const BASE_URL = 'http://localhost:3000/user';
+const BASE_URL = 'http://localhost:3000/users'
 
 export const login = createAsyncThunk(
     'auth/login',
-    async({email, password}: {email: string, password: string}, {rejectWithValue}) => {
-        try{
-            const response = await axios.post(`${BASE_URL}/login`, {email, password});
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+    async ({ email, password}: { email: string; password: string }, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/login`, { email, password });
             return response.data;
-        }catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'failed to login');
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to login');
+        }
     }
-});
+    );
 
 export const signup = createAsyncThunk(
     'auth/signup',
-    async({name, email, password}: {name: string, email: string, password: string}, {rejectWithValue}) => {
-        try{
-            const response = await axios.post(`${BASE_URL}/register`, {name, email, password});
+    async ({ name, email, password}: { name: string; email: string; password: string }, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/register`, { name, email, password });
             return response.data;
-        }catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'failed to signup');
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to signup');
         }
     }
-);
+    );
 
 export const logout = createAsyncThunk(
     'auth/logout',
-    async() => {
+    async () => {
         localStorage.removeItem('user');
-        return null;   
+        return null
     }
 );
+
 
 const authSlice = createSlice({
     name: 'auth',

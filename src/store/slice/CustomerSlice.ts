@@ -17,7 +17,9 @@ const initialState: CustomerState = {
 export const fetchCustomers = createAsyncThunk('customer/fetchCustomers', async (_, {rejectWithValue}) => {
     try{
         const response = await axios.get('http://localhost:3000/customers');
+        console.log(response.data);
         return response.data;
+
     }catch (error: any) {
         return rejectWithValue(error.response?.data?.message || 'failed to fetch customers');
     }
@@ -34,7 +36,7 @@ export const addCustomer = createAsyncThunk('customer/addCustomer', async (custo
 
 export const updateCustomer = createAsyncThunk('customer/updateCustomer', async (customer: Customer, {rejectWithValue}) => {
     try{
-        const response = await axios.put(`http://localhost:3000/customers/${customer.id}`, customer);
+        const response = await axios.put(`http://localhost:3000/customers/${customer._id}`, customer);
         return response.data;
     }catch (error: any) {
         return rejectWithValue(error.response?.data?.message || 'failed to update customer');

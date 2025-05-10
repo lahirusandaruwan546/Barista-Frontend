@@ -1,51 +1,97 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Plus, Minus, X, Check } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, X, Check, PrinterCheck } from 'lucide-react';
+import { RootState } from '../store/store';
+import { fetchCustomers } from '../store/slice/CustomerSlice';
+import { fetchItems, Item } from '../store/slice/itemSlice';
+import { creatOrder, fetchOrders } from '../store/slice/orderSlice';
+import { addToCart, clearCart, removeFromCart, setCustomerId, updateQuantity } from '../store/slice/cartSlice';
 
 const Orders: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { customers } = useSelector((state: RootState) => state.customer);
+  const { items } = useSelector((state: RootState) => state.items);
+  const { orders } = useSelector((state: RootState) => state.orders);
+  const { items: cartItems , customerId} = useSelector((state: RootState) => state.cart);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<string>('');
   const [searchItemTerm, setSearchItemTerm] = useState('');
 
-
+  useEffect(() => {
+    dispatch(fetchCustomers() as any);
+    dispatch(fetchItems() as any);
+    dispatch(fetchOrders() as any);
+  }, [dispatch]);
 
   const filteredOrders = orders.filter((order) => {
-    const customer = order.customerId?.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const orderId = order._id.toLowerCase().includes(searchTerm.toLowerCase());
-    const date = new Date(order.date).toLocaleDateString().includes(searchTerm);
+    const customer = (order.customerId?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || '';
+    const orderId = (order._id?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || '';
+    const date = (new Date(order.date).toLocaleDateString() || '').includes(searchTerm) || '';
     return customer || orderId || date;
   });
 
   const filteredItems = items.filter(
       (item) =>
-          item.name.toLowerCase().includes(searchItemTerm.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchItemTerm.toLowerCase())
+          (item.name?.toLowerCase() || '').includes(searchItemTerm.toLowerCase()) ||
+          (item.category?.toLowerCase() || '').includes(searchItemTerm.toLowerCase())
   );
 
   const handleAddToCart = (item: Item) => {
+    dispatch(addToCart(item));
   };
 
   const handleRemoveFromCart = (itemId: string) => {
+    dispatch(removeFromCart(itemId));
   };
 
   const handleUpdateQuantity = (itemId: string, quantity: number) => {
-
+    if(quantity <= 0){
+      dispatch(removeFromCart(itemId));
+    }else{
+      dispatch(updateQuantity({ itemId, quantity }));
+    }
   };
 
   const handleCustomerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCustomer(e.target.value);
+    dispatch(setCustomerId(e.target.value));
   };
 
   const calculateTotal = () => {
+    return cartItems.reduce((total, item) => total + item.item.price * item.quantity, 0);
   };
 
   const handleCreateOrder = async () => {
+    if(!selectedCustomer || cartItems.length === 0) {
+      alert('Please select a customer and add items to the cart');
+      return;
+    }
 
+    try{
+      const orderItem = cartItems.map((item) => ({
+        itemId: item.item._id,
+        quantity: item.quantity,
+        price: item.item.price
+      }))
+
+      await dispatch(
+        creatOrder({
+          customerId: selectedCustomer, orderItems: orderItem, total: calculateTotal()}) as any
+      )
+
+      alert('Order created successfully');
+      dispatch(clearCart());
+      setIsCartOpen(false);
+      navigate('/orders');
+      
+    }catch (error){
+      console.error('Error creating order:', error);
+      alert('Failed to create order');
+    }
   };
 
   const handleStatusChange = async (orderId: string, status) => {
@@ -81,11 +127,6 @@ const Orders: React.FC = () => {
         />
       </div>
 
-      {loading ? (
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-      ) : (
         <div className="bg-white shadow overflow-hidden rounded-md">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -163,7 +204,6 @@ const Orders: React.FC = () => {
             </tbody>
           </table>
         </div>
-      )}
 
       {/* Cart Sidebar */}
       {isCartOpen && (
@@ -258,7 +298,7 @@ const Orders: React.FC = () => {
                                       <div className="flex items-center">
                                         <button
                                           type="button"
-                                          onClick={() => handleUpdateQuantity(cartItem.item.id, cartItem.quantity - 1)}
+                                          onClick={() => handleUpdateQuantity(cartItem.item._id, cartItem.quantity - 1)}
                                           className="text-gray-600 hover:text-gray-800 p-1"
                                         >
                                           <Minus className="h-4 w-4" />
@@ -266,7 +306,7 @@ const Orders: React.FC = () => {
                                         <span className="mx-2 text-gray-700">{cartItem.quantity}</span>
                                         <button
                                           type="button"
-                                          onClick={() => handleUpdateQuantity(cartItem.item.id, cartItem.quantity + 1)}
+                                          onClick={() => handleUpdateQuantity(cartItem.item._id, cartItem.quantity + 1)}
                                           className="text-gray-600 hover:text-gray-800 p-1"
                                         >
                                           <Plus className="h-4 w-4" />
@@ -274,7 +314,7 @@ const Orders: React.FC = () => {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => handleRemoveFromCart(cartItem.item.id)}
+                                        onClick={() => handleRemoveFromCart(cartItem.item._id)}
                                         className="font-medium text-red-600 hover:text-red-500"
                                       >
                                         Remove
@@ -293,7 +333,7 @@ const Orders: React.FC = () => {
                   <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
                     <div className="flex justify-between text-base font-medium text-gray-900 mb-4">
                       <p>Subtotal</p>
-                      <p>LKR {calculateTotal().toFixed(2)}</p>
+                      <p>LKR {calculateTotal()}</p>
                     </div>
                     <button
                       type="button"

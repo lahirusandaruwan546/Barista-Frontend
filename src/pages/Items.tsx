@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 import {   Search,   Plus,   Edit,   Trash2,   X } from 'lucide-react';
+import { addItem, deleteItem, fetchItems, Item, updateItem } from '../store/slice/itemSlice';
 
 const Items: React.FC = () => {
-  const { items, categories, loading } = useSelector((state: RootState) => state.items);
+  const dispatch = useDispatch();
+  const { items, categories} = useSelector((state: RootState) => state.items);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState({
@@ -17,19 +19,44 @@ const Items: React.FC = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
 
+  useEffect(() => {
+    dispatch(fetchItems() as any)
+  },
+  [dispatch]);
 
   const filteredItems = items.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase())
+      (item.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (item.category?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = () => {
+  const handleOpenModal = (item?: Item) => {
+    if(item){
+      setCurrentItem(item);
+      setIsEditing(true)
+    }else{
+      setCurrentItem({
+        name: '',
+        category: categories[0],
+        price: 0,
+        image: '',
+        remark: '',
+      });
+      setIsEditing(false);
+    }
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setCurrentItem({
+      name: '',
+      category: categories[0],
+      price: 0,
+      image: '',
+      remark: '',
+    })
+    setIsEditing(false);
   };
 
   const handleInputChange = (
@@ -45,11 +72,25 @@ const Items: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if(!currentItem.name || !currentItem.category || currentItem.price === undefined){
+      alert("Please fill all the fields");
+      return;
+    }
+
+    if (isEditing && currentItem._id) {
+      await dispatch(updateItem(currentItem as Item) as any);
+    } else {
+      await dispatch(addItem(currentItem as Item) as any);
+    }
     handleCloseModal();
+
+    await dispatch(fetchItems() as any);
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
+      await dispatch(deleteItem(id) as any);
+      dispatch(fetchItems() as any);
     }
   };
 
@@ -79,11 +120,6 @@ const Items: React.FC = () => {
         />
       </div>
 
-      {loading ? (
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-      ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredItems.length > 0 ? (
             filteredItems.map((item) => (
@@ -96,7 +132,7 @@ const Items: React.FC = () => {
                 <div className="p-4">
                   <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
                   <p className="text-sm text-gray-500">{item.category}</p>
-                  <p className="text-lg font-bold text-gray-900 mt-2">LKR {item.price.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-gray-900 mt-2">LKR {item.price?.toFixed(2)}</p>
                   <p className="text-sm text-gray-600 mt-2 line-clamp-2">{item.remark}</p>
                   <div className="mt-4 flex justify-end space-x-2">
                     <button
@@ -121,7 +157,6 @@ const Items: React.FC = () => {
             </div>
           )}
         </div>
-      )}
 
       {/* Item Modal */}
       {isModalOpen && (
