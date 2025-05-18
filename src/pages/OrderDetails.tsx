@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {   ArrowLeft,   Package,   Truck,   CheckCircle,   XCircle } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, XCircle, PackageIcon } from 'lucide-react';
 import { RootState } from '../store/store';
 import { fetchOrderById } from '../store/slice/orderSlice';
+import Select from 'react-select';
 
 const OrderDetails: React.FC = () => {
   const dispatch = useDispatch();
@@ -51,168 +52,201 @@ const OrderDetails: React.FC = () => {
 
   if (!selectedOrder) {
     return (
-      <div className="text-center py-10">
-        <p className="text-gray-500">No order selected or order not found</p>
+      <div className="flex flex-col items-center justify-center py-16 bg-[#2a1a1f]/90 border border-[#3e2d34]/50 rounded-2xl shadow-lg shadow-[#3e2d34]/20">
+        <Package className="h-16 w-16 text-[#7a6a5f] mb-4 animate-bounce" />
+        <h3 className="text-xl font-medium text-[#c4a287] mb-2">Order Not Found</h3>
+        <p className="text-[#7a6a5f] max-w-md text-center px-4">
+          No order was selected or the order doesn't exist. Please check the order ID or go back to the orders list.
+        </p>
+        <button
+          onClick={() => window.history.back()}
+          className="mt-6 px-6 py-2 bg-[#3e2d34] hover:bg-[#6F4E37] text-[#c4a287] rounded-lg flex items-center transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[#2a1a1f]/90 backdrop-blur-sm border border-[#3e2d34]/50 p-6 rounded-2xl shadow-lg shadow-[#3e2d34]/20">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button
             onClick={() => window.history.back()}
-            className="mr-4 text-gray-500 hover:text-gray-700"
+            className="mr-4 text-[#c4a287] hover:text-[#d4b59b] transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
+          <h1 className="text-2xl font-bold text-[#c4a287]">Order Details</h1>
         </div>
-        <div className={`px-4 py-2 rounded-full ${getStatusClass(selectedOrder.status)} flex items-center`}>
+        <div className={`px-4 py-2 rounded-full ${getStatusClass(selectedOrder.status)} flex items-center border border-[#3e2d34]`}>
           {getStatusIcon(selectedOrder.status)}
           <span className="ml-2 text-sm font-medium capitalize">{selectedOrder.status}</span>
         </div>
       </div>
 
-      <div className="bg-white shadow overflow-hidden rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Order Information</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">Details about the order and customer.</p>
+      <div className="bg-[#2a1a1f] border border-[#3e2d34] rounded-xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#3e2d34]">
+          <h3 className="text-lg font-medium text-[#c4a287] flex items-center">
+            <PackageIcon className="h-5 w-5 mr-2" />
+            Order Information
+          </h3>
         </div>
-        <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-          <dl className="sm:divide-y sm:divide-gray-200">
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Order ID</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{selectedOrder._id}</dd>
+        <div className="px-6 py-4">
+          <dl className="divide-y divide-[#3e2d34]">
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Order ID</dt>
+              <dd className="text-sm font-bold text-[#c4a287] col-span-2">{selectedOrder._id}</dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Date</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Date</dt>
+              <dd className="text-sm font-bold text-[#c4a287] col-span-2">
                 {new Date(selectedOrder.date).toLocaleString()}
               </dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Customer</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Customer</dt>
+              <dd className="text-sm font-bold text-[#c4a287] col-span-2">
                 {selectedOrder.customerId?.name || 'Unknown'}
               </dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Email</dt>
+              <dd className="text-sm font-bold text-[#c4a287] col-span-2">
                 {selectedOrder.customerId?.email || 'N/A'}
               </dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Telephone</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Telephone</dt>
+              <dd className="text-sm font-bold text-[#c4a287] col-span-2">
                 {selectedOrder.customerId?.telephone || 'N/A'}
               </dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Total Amount</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-bold">
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Total Amount</dt>
+              <dd className="text-sm font-bold text-[#c4a287] col-span-2">
                 ${selectedOrder.total.toFixed(2)}
               </dd>
             </div>
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Status</dt>
-              <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={selectedOrder.status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    className={`rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${getStatusClass(
-                      selectedOrder.status
-                    )}`}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
+            <div className="py-4 grid grid-cols-3 gap-4">
+              <dt className="text-sm font-medium text-[#7a6a5f]">Status</dt>
+              <dd className="col-span-2">
+                <Select
+                  options={[
+                    { value: 'pending', label: 'Pending' },
+                    { value: 'completed', label: 'Completed' },
+                    { value: 'cancelled', label: 'Cancelled' }
+                  ]}
+                  value={{ value: selectedOrder.status, label: selectedOrder.status }}
+                  onChange={(option) => handleStatusChange(option.value)}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      backgroundColor: '#2a1a1f',
+                      borderColor: '#3e2d34',
+                      color: '#c4a287'
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      backgroundColor: '#2a1a1f',
+                      borderColor: '#3e2d34'
+                    }),
+                    option: (base, { isFocused }) => ({
+                      ...base,
+                      backgroundColor: isFocused ? '#3e2d34' : '#2a1a1f',
+                      color: '#c4a287'
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: '#c4a287'
+                    })
+                  }}
+                />
               </dd>
             </div>
           </dl>
         </div>
       </div>
 
-      <div className="bg-white shadow overflow-hidden rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Order Items</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">List of items in this order.</p>
+      <div className="bg-[#2a1a1f] border border-[#3e2d34] rounded-xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#3e2d34]">
+          <h3 className="text-lg font-medium text-[#c4a287] flex items-center">
+            <Truck className="h-5 w-5 mr-2" />
+            Order Items
+          </h3>
         </div>
-        <div className="border-t border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-[#3e2d34]">
+            <thead className="bg-[#2a1a1f]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#c4a287] uppercase tracking-wider">
                   Item
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#c4a287] uppercase tracking-wider">
                   Price
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#c4a287] uppercase tracking-wider">
                   Quantity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#c4a287] uppercase tracking-wider">
                   Subtotal
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-[#3e2d34]/50 bg-[#2a1a1f]/80">
               {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 ? (
                 selectedOrder.orderItems.map((orderItem) => (
-                  <tr key={orderItem._id}>
+                  <tr key={orderItem._id} className="hover:bg-[#3e2d34]/30 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <img
-                            className="h-10 w-10 rounded-full object-cover"
+                            className="h-10 w-10 rounded-full object-cover border border-[#3e2d34]"
                             src={
                               orderItem.itemId?.image ||
-                              `https://source.unsplash.com/random/100x100/?furniture,${orderItem.itemId?.category || 'chair'}`
+                              `https://source.unsplash.com/random/100x100/?coffee`
                             }
                             alt=""
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-[#c4a287]">
                             {orderItem.itemId?.name || 'Unknown Item'}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-[#7a6a5f]">
                             {orderItem.itemId?.category || 'Unknown Category'}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">${orderItem.price.toFixed(2)}</div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#c4a287]">
+                      LKR {orderItem.price.toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{orderItem.quantity}</div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#c4a287]">
+                      {orderItem.quantity}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${(orderItem.price * orderItem.quantity).toFixed(2)}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#c4a287]">
+                      LKR {(orderItem.price * orderItem.quantity).toFixed(2)}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-[#7a6a5f]">
                     No items in this order
                   </td>
                 </tr>
               )}
             </tbody>
-            <tfoot className="bg-gray-50">
+            <tfoot className="bg-[#2a1a1f] border-t border-[#3e2d34]">
               <tr>
-                <th colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                <th colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-[#c4a287]">
                   Total:
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  ${selectedOrder.total.toFixed(2)}
+                <th className="px-6 py-3 text-left text-sm font-bold text-[#c4a287]">
+                  LKR {selectedOrder.total.toFixed(2)}
                 </th>
               </tr>
             </tfoot>
